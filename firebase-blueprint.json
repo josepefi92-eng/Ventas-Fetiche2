@@ -1,0 +1,60 @@
+{
+  "entities": {
+    "Product": {
+      "title": "Product",
+      "description": "A product in the catalog",
+      "type": "object",
+      "properties": {
+        "name": { "type": "string" },
+        "price": { "type": "number" },
+        "category": { "type": "string" }
+      },
+      "required": ["name", "price", "category"]
+    },
+    "Account": {
+      "title": "Account",
+      "description": "A customer account or table",
+      "type": "object",
+      "properties": {
+        "name": { "type": "string" },
+        "status": { "type": "string", "enum": ["open", "closed"] },
+        "total": { "type": "number" },
+        "createdAt": { "type": "number" },
+        "closedAt": { "type": "number" },
+        "items": {
+          "type": "array",
+          "items": {
+            "$ref": "#/entities/AccountItem"
+          }
+        }
+      },
+      "required": ["name", "status", "total", "createdAt"]
+    },
+    "AccountItem": {
+      "title": "AccountItem",
+      "description": "An item added to an account",
+      "type": "object",
+      "properties": {
+        "productId": { "type": "string" },
+        "name": { "type": "string" },
+        "price": { "type": "number" },
+        "quantity": { "type": "number" }
+      },
+      "required": ["productId", "name", "price", "quantity"]
+    }
+  },
+  "firestore": {
+    "/products/{productId}": {
+      "schema": "Product",
+      "description": "The product catalog"
+    },
+    "/accounts/{accountId}": {
+      "schema": "Account",
+      "description": "Open and closed accounts"
+    },
+    "/accounts/{accountId}/items/{itemId}": {
+      "schema": "AccountItem",
+      "description": "Items within an account"
+    }
+  }
+}

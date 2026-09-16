@@ -1,0 +1,6 @@
+{
+  "name": "QuickPOS - Punto de Venta",
+  "description": "Sistema de punto de venta ligero para bares y cafés con gestión de cuentas, catálogo de productos e historial de ventas.",
+  "requestFramePermissions": [],
+  "majorCapabilities": []
+}
