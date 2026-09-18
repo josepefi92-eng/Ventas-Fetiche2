@@ -20,7 +20,8 @@ import {
   PlusCircle,
   MinusCircle,
   CreditCard,
-  UserPlus
+  UserPlus,
+  Search
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import { 
@@ -95,6 +96,7 @@ export default function App() {
   const [isDarkMode, setIsDarkMode] = useState(false);
   const [isNewAccountModalOpen, setIsNewAccountModalOpen] = useState(false);
   const [newAccountName, setNewAccountName] = useState('');
+  const [accountSearchQuery, setAccountSearchQuery] = useState('');
 
   const [accountToDelete, setAccountToDelete] = useState<string | null>(null);
 
@@ -415,6 +417,15 @@ export default function App() {
 
   // --- Derived State ---
   const openAccounts = accounts.filter(acc => acc.status === 'open');
+  const filteredOpenAccounts = useMemo(() => {
+    const query = accountSearchQuery.trim().toLowerCase();
+    if (!query) return openAccounts;
+    return openAccounts.filter(acc => 
+      acc.name.toLowerCase().includes(query) ||
+      acc.items.some(item => item.name.toLowerCase().includes(query))
+    );
+  }, [openAccounts, accountSearchQuery]);
+
   const closedAccounts = accounts.filter(acc => acc.status === 'closed');
   const selectedAccount = accounts.find(acc => acc.id === selectedAccountId);
 
@@ -493,7 +504,12 @@ export default function App() {
             {/* List of Accounts (Left Pane) */}
             <div className={`lg:col-span-4 space-y-4 ${selectedAccountId ? 'hidden lg:block' : 'block'}`}>
               <div className="flex items-center justify-between">
-                <h2 className="text-2xl font-bold font-sans">Cuentas Abiertas</h2>
+                <div className="flex items-center gap-2">
+                  <h2 className="text-2xl font-bold font-sans">Cuentas Abiertas</h2>
+                  <span className="px-2.5 py-0.5 rounded-full text-xs font-black bg-blue-100 text-blue-700 dark:bg-blue-900/40 dark:text-blue-300">
+                    {filteredOpenAccounts.length}{accountSearchQuery ? ` de ${openAccounts.length}` : ''}
+                  </span>
+                </div>
                 <button 
                   onClick={() => setIsNewAccountModalOpen(true)}
                   className="bg-primary-600 hover:bg-primary-700 text-white p-2 rounded-full shadow-lg transition-transform active:scale-95 flex items-center gap-2 px-4"
@@ -504,12 +520,53 @@ export default function App() {
                 </button>
               </div>
 
+              {/* Account Search Input */}
+              <div className="relative">
+                <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-neutral-400">
+                  <Search className="w-4 h-4" />
+                </div>
+                <input
+                  type="text"
+                  value={accountSearchQuery}
+                  onChange={(e) => setAccountSearchQuery(e.target.value)}
+                  placeholder="Buscar cuenta o producto..."
+                  className={`w-full pl-10 pr-10 py-2.5 rounded-xl border text-sm font-medium transition-all outline-none focus:ring-2 focus:ring-blue-500/30 ${
+                    isDarkMode 
+                      ? 'bg-neutral-900 border-neutral-800 focus:border-blue-500 text-white placeholder-neutral-500' 
+                      : 'bg-white border-neutral-200 focus:border-blue-500 text-neutral-900 placeholder-neutral-400 shadow-xs'
+                  }`}
+                />
+                {accountSearchQuery && (
+                  <button
+                    onClick={() => setAccountSearchQuery('')}
+                    className="absolute inset-y-0 right-0 pr-3 flex items-center text-neutral-400 hover:text-neutral-600 dark:hover:text-neutral-200 transition-colors"
+                    title="Borrar búsqueda"
+                  >
+                    <X className="w-4 h-4" />
+                  </button>
+                )}
+              </div>
+
               <div className="space-y-3">
                 <AnimatePresence initial={false}>
-                  {openAccounts.length === 0 ? (
-                    <div className="text-center py-10 opacity-50 italic">No hay cuentas abiertas</div>
+                  {filteredOpenAccounts.length === 0 ? (
+                    <div className="text-center py-10 px-4 rounded-2xl border border-dashed dark:border-neutral-800 border-neutral-200">
+                      {accountSearchQuery ? (
+                        <div className="space-y-2">
+                          <p className="text-sm opacity-60">No se encontró ninguna cuenta con &ldquo;<span className="font-bold">{accountSearchQuery}</span>&rdquo;</p>
+                          <button
+                            onClick={() => setAccountSearchQuery('')}
+                            className="text-xs font-bold text-blue-600 dark:text-blue-400 hover:underline"
+                          >
+                            Limpiar búsqueda
+                          </button>
+                        </div>
+                      ) : (
+                        <p className="opacity-50 italic">No hay cuentas abiertas</p>
+                      )}
+                    </div>
                   ) : (
-                    openAccounts.map(acc => (
+                    filteredOpenAccounts.map(acc => (
                       <motion.div
                         key={acc.id}
                         initial={{ opacity: 0, x: -20 }}
